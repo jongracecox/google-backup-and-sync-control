@@ -24,30 +24,16 @@ set_global_preference() {
 update global_preferences set preference_value = $value where preference_type='$pref';
 EOF
 
-  test_value=$(get_rate $pref)
+  test_value=$(get_global_preference $pref)
   if [ ! "$test_value" = "$value" ]; then
     echo "ERROR: Failed to update $pref value in $DATABASE_FILE." >&2
     exit 1
   fi
   }
 
-get_upload_rate() {
-  get_global_preference tx
-  }
-
-get_download_rate() {
-  get_global_preference rx
-  }
-
-get_rate() {
-  get_global_preference $1
-  }
-
 display_current_rates() {
-  UPLOAD_RATE=$(get_upload_rate)
-  DOWNLOAD_RATE=$(get_download_rate)
-  echo ">>> Upload rate: $UPLOAD_RATE"
-  echo "<<< Download rate: $DOWNLOAD_RATE"
+  echo ">>> Upload rate: $(get_global_preference tx)"
+  echo "<<< Download rate: $(get_global_preference rx)"
 }
 
 get_backup_process_pid() {
