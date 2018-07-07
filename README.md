@@ -12,8 +12,8 @@ Choose a path for the script to live.  A good chocie might be `/Users/<USER>/Scr
 Download the script using Terminal application:
 
 ```bash
-curl https://raw.githubusercontent.com/jongracecox/google-backup-and-sync-control/master/set-google-upload-rate.sh > ~/Scripts/set-google-upload-rate.sh
-chmod +x ~/Scripts/set-google-upload-rate.sh
+curl https://raw.githubusercontent.com/jongracecox/google-backup-and-sync-control/master/google-sync-config.sh > ~/Scripts/google-sync-config.sh
+chmod +x ~/Scripts/google-sync-config.sh
 ```
 
 ## Manual Use
@@ -24,7 +24,7 @@ in the same directory as the downloaded script (e.g. `cd ~/Scripts`).
 ### Display the current upload and download settings
 
 ```bash
-./set-google-upload-rate.sh --current-settings
+./google-sync-config.sh --current-settings
 ```
 
 ### Set upload rate
@@ -32,7 +32,7 @@ in the same directory as the downloaded script (e.g. `cd ~/Scripts`).
 Rate should be an integer.
 
 ```bash
-./set-google-upload-rate.sh --upload <rate>
+./google-sync-config.sh --upload <rate>
 ```
 
 ### Set download rate
@@ -40,7 +40,7 @@ Rate should be an integer.
 Rate should be an integer.
 
 ```bash
-./set-google-upload-rate.sh --download <rate>
+./google-sync-config.sh --download <rate>
 ```
 
 ## Scheduled use
@@ -69,10 +69,10 @@ This example will set the following schedule:
 #  *   *   *   *  *  command to be executed
 
 # Change Google backup and sync upload rate
-0 2 * * * /path/to/script/set-google-upload-rate.sh --upload 100 > /path/to/script/set-google-upload-rate.log 2>&1
-0 2 * * * /path/to/script/set-google-upload-rate.sh --download 200 > /path/to/script/set-google-upload-rate.log 2>&1
-0 7 * * * /path/to/script/set-google-upload-rate.sh --upload 25 > /path/to/script/set-google-upload-rate.log 2>&1
-0 7 * * * /path/to/script/set-google-upload-rate.sh --download 50 > /path/to/script/set-google-upload-rate.log 2>&1
+0 2 * * * /path/to/script/google-sync-config.sh --upload 100 > /path/to/script/google-sync-config.log 2>&1
+0 2 * * * /path/to/script/google-sync-config.sh --download 200 > /path/to/script/google-sync-config.log 2>&1
+0 7 * * * /path/to/script/google-sync-config.sh --upload 25 > /path/to/script/google-sync-config.log 2>&1
+0 7 * * * /path/to/script/google-sync-config.sh --download 50 > /path/to/script/google-sync-config.log 2>&1
 ```
 
 
