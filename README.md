@@ -16,38 +16,63 @@ curl https://raw.githubusercontent.com/jongracecox/google-backup-and-sync-contro
 chmod +x ~/Scripts/google-sync-config.sh
 ```
 
-## Manual Use
+## Usage
+
+```
+google-sync-config.sh [--upload <rate>] [--download <rate>]
+```
 
 The script can be used in the following ways.  For these examples I'm going to assume you are
 in the same directory as the downloaded script (e.g. `cd ~/Scripts`).
 
-### Display the current upload and download settings
+To get current settings, run the script with no parameters
 
-```bash
-./google-sync-config.sh --current-settings
+```
+> ./google-sync-config.sh
+Current settings as at Sat Jul  7 11:03:02 EDT 2018:
+>>> Upload rate: 50
+<<< Download rate: 500
 ```
 
-### Set upload rate
-
-Rate should be an integer.
+To set rates use the `--upload` and `--download` options.  They can be used together or individually.  
+Rate should be passed as an integer.
 
 ```bash
 ./google-sync-config.sh --upload <rate>
+./google-sync-config.sh --download <rate>
+./google-sync-config.sh --upload <rate> --download <rate>
 ```
 
-### Set download rate
+## Example
 
-Rate should be an integer.
+```
+> /google-sync-config.sh --upload 25 --download 150
+Current settings as at Sat Jul  7 11:05:33 EDT 2018:
+>>> Upload rate: 50
+<<< Download rate: 500
 
-```bash
-./google-sync-config.sh --download <rate>
+Setting tx to 25...
+Setting rx to 150...
+
+New settings:
+>>> Upload rate: 25
+<<< Download rate: 150
+Restarting backup and sync application
+Killing process 41860
+42307
+Process details: 41860 ??         3:52.28 /Applications/Backup and Sync.app/Contents/MacOS/Backup and Sync
+Waiting for backup process to finish...
+Sleeping .......................
+Starting backup and sync application
+
+Backup application has been restarted
 ```
 
 ## Scheduled use
 
 To schedule rate changes you can use crontab on your Mac.  If you're comfortable using `vi` then just use
-`crontab -e` to edit your crontab.  If you haven't used vi then `nano` may be better, so use `export VISUAL=nano; crontab -e`
-to edit your crontab settings.
+`crontab -e` to edit your crontab.  If you haven't used vi before then `nano` may be better, so use
+`export VISUAL=nano; crontab -e` to edit your crontab settings.
 
 Change `/path/to/script` to the location of your script.
 
@@ -59,6 +84,8 @@ This example will set the following schedule:
 | 7am  | Set upload to 25 and download to 50   |
 
 
+Run `crontab -e` and paste this into your crontab settings.
+
 ```
 #  .---------------- minute (0 - 59)
 #  |   .------------- hour (0 - 23)
@@ -69,10 +96,9 @@ This example will set the following schedule:
 #  *   *   *   *  *  command to be executed
 
 # Change Google backup and sync upload rate
-0 2 * * * /path/to/script/google-sync-config.sh --upload 100 > /path/to/script/google-sync-config.log 2>&1
-0 2 * * * /path/to/script/google-sync-config.sh --download 200 > /path/to/script/google-sync-config.log 2>&1
-0 7 * * * /path/to/script/google-sync-config.sh --upload 25 > /path/to/script/google-sync-config.log 2>&1
-0 7 * * * /path/to/script/google-sync-config.sh --download 50 > /path/to/script/google-sync-config.log 2>&1
+0 2 * * * /path/to/script/google-sync-config.sh --upload 100 --download 200> /path/to/script/google-sync-config.log 2>&1
+0 7 * * * /path/to/script/google-sync-config.sh --upload 25 --download 50> /path/to/script/google-sync-config.log 2>&1
 ```
 
+If you need to temporarily disable the entries you can comment them out by placing a `#` at the start of each line.
 

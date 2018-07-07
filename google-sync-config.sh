@@ -19,9 +19,16 @@ EOF
 set_global_preference() {
   pref=$1
   value=$2
+  echo "Setting $pref to $value..."
   $SQLITE_CMD "$DATABASE_FILE" <<EOF
 update global_preferences set preference_value = $value where preference_type='$pref';
 EOF
+
+  test_value=$(get_rate $pref)
+  if [ ! "$test_value" = "$value" ]; then
+    echo "ERROR: Failed to update $pref value in $DATABASE_FILE." >&2
+    exit 1
+  fi
   }
 
 get_upload_rate() {
@@ -39,8 +46,8 @@ get_rate() {
 display_current_rates() {
   UPLOAD_RATE=$(get_upload_rate)
   DOWNLOAD_RATE=$(get_download_rate)
-  echo "$(date)   Upload rate: $UPLOAD_RATE"
-  echo "$(date)   Download rate: $DOWNLOAD_RATE"
+  echo ">>> Upload rate: $UPLOAD_RATE"
+  echo "<<< Download rate: $DOWNLOAD_RATE"
 }
 
 get_backup_process_pid() {
@@ -53,67 +60,72 @@ get_backup_process_pid() {
 kill_backup_process() {
   backup_pid=$(get_backup_process_pid)
   if [ -z "$backup_pid" ]; then
-    echo "$(date) WARNING: Could not identify backup process PID."
+    echo "WARNING: Could not identify backup process PID."
     return
   fi
-  echo "$(date) Killing process $backup_pid"
-  echo "$(date) Process details: $(ps -p $backup_pid | tail -1)"
+  echo "Killing process $backup_pid"
+  echo "Process details: $(ps -p $backup_pid | tail -1)"
   kill $backup_pid 2>/dev/null
 
   count=0
   while true; do
     kill -0 $backup_pid 2>/dev/null || break
-    echo "$(date) Waiting for backup process to finish... "
+    echo "Waiting for backup process to finish... "
     sleep $RESTART_SLEEP_SECONDS
     count=$(( $count + 1 ))
-    [ $count -lt $RESTART_TIMEOUT_COUNT ] || { echo "$(date) ERROR: Backup process did not finish." >&2 ; exit 1 ; }
+    [ $count -lt $RESTART_TIMEOUT_COUNT ] || { echo "ERROR: Backup process did not finish." >&2 ; exit 1 ; }
   done
   }
 
 start_backup_process() {
-  echo "$(date) Starting backup and sync application"
+  echo "Starting backup and sync application"
   open -a "$BACKUP_APPLICATION_PATH"
   }
 
 restart_backup_process() {
-  echo "$(date) Restarting backup and sync application"
+  echo "Restarting backup and sync application"
   kill_backup_process
-  echo -n "$(date) Sleeping ..."
+  echo -n "Sleeping ..."
   for i in {1..20}; do
     echo -n "."
     sleep 1
   done
   echo
   start_backup_process
+  echo
+  echo "Backup application has been restarted"
+  echo
   }
 
 main() {
 
+  echo "Current settings as at $(date):"
+  display_current_rates
+  echo
+
+  settings_changed=0
+
   while true; do
     case "$1" in
 
-      --current-settings)
-        echo "$(date) Current settings"
-        display_current_rates
-        exit 0
-        ;;
-
       --upload|-u|-tx)
-        pref_to_change='tx'
         shift
         new_pref_value=$1
         shift
+        set_global_preference tx $new_pref_value
+        settings_changed=1
         ;;
 
       --download|-d|-rx)
-        pref_to_change='rx'
         shift
         new_pref_value=$1
         shift
+        set_global_preference rx $new_pref_value
+        settings_changed=1
         ;;
 
       -*)
-        echo "$(date) ERROR: Unknown option \"$1\".  Expected --current-settings, --upload or --download." >&2
+        echo "ERROR: Unknown option \"$1\".  Expected --upload or --download." >&2
         exit 1
         ;;
 
@@ -122,38 +134,12 @@ main() {
     esac
   done
 
-  if [ -z "$pref_to_change" ]; then
-    echo "$(date) ERROR: Nothing to do." >&2
-    exit 1
-  elif [ -z "$new_pref_value" ]; then
-    echo "$(date) ERROR: No $pref_to_change value passed." >&2
-    exit 1
+  if [ $settings_changed -eq 1 ]; then
+    echo
+    echo "New settings:"
+    display_current_rates
+    restart_backup_process
   fi
-
-  echo "$(date) Current settings:"
-  display_current_rates
-  echo
-  echo "$(date) Setting $pref_to_change to $new_pref_value..."
-
-  set_global_preference $pref_to_change $new_pref_value
-
-  test_value=$(get_rate $pref_to_change)
-
-  if [ ! "$test_value" = "$new_pref_value" ]; then
-    echo "$(date) ERROR: Failed to update $pref_to_change value in $DATABASE_FILE." >&2
-    exit 1
-  fi
-
-  echo
-  echo "$(date) New settings:"
-  display_current_rates
-  echo
-
-  restart_backup_process
-
-  echo
-  echo "$(date) Done"
-  echo
 
   }
 
